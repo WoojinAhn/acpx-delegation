@@ -1,0 +1,13 @@
+{
+  "name": "rescue",
+  "version": "0.1.0",
+  "description": "On-demand delegation to Grok, Antigravity and Devin through acpx.",
+  "author": { "name": "WoojinAhn" },
+  "skills": "./codex-skills/",
+  "interface": {
+    "displayName": "Rescue",
+    "shortDescription": "Delegate to external coding agents.",
+    "category": "Coding",
+    "capabilities": ["Interactive", "Write"]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "acpx-delegation",
+  "metadata": { "description": "On-demand external coding-agent delegation through acpx." },
+  "owner": { "name": "WoojinAhn" },
+  "plugins": [
+    { "name": "rescue", "source": "./plugins/rescue", "description": "Delegate to Grok, Antigravity and Devin through acpx." }
+  ]
+}

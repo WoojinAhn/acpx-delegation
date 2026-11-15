@@ -1,0 +1,7 @@
+{
+  "name": "acpx-delegation",
+  "interface": { "displayName": "ACP Delegation" },
+  "plugins": [
+    { "name": "rescue", "source": { "source": "local", "path": "./plugins/rescue" } }
+  ]
+}

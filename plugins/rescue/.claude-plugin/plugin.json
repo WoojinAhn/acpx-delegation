@@ -1,0 +1,8 @@
+{
+  "name": "rescue",
+  "version": "0.1.0",
+  "description": "On-demand delegation to Grok, Antigravity and Devin through acpx.",
+  "author": { "name": "WoojinAhn" },
+  "repository": "https://github.com/WoojinAhn/acpx-delegation",
+  "license": "MIT"
+}
