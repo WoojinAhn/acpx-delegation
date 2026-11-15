@@ -1,0 +1,5 @@
+node_modules/
+.Codex/
+coverage/
+*.tgz
+.DS_Store
