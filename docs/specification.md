@@ -90,12 +90,18 @@ Any picker supports search, bounded pages and cancellation without side effects.
 - Do not pass `sessionOptions.model` back to `ensureSession` for an existing scope:
   acpx 0.22.0 can reconnect and change it outside the strict prompt path. Model is
   selected at fresh creation and inherited on continuation.
+- Devin's empty native sessions are not reloadable before their first prompt in
+  the tested CLI. Its first request therefore uses acpx's public CLI
+  `prompt --no-wait`, allowing acpx's empty-session recovery. This is a fresh-only
+  path: create a unique scope with no prior prompt, validate choices, write intent,
+  submit once, and persist the queue receipt. Every continuation still uses the
+  strict shared-runtime path. No hidden bootstrap prompt is submitted.
 - Host worker ID, integration execution ID, acpx session ID, provider session ID
   and acpx request ID are different identities.
 - Small durable receipts may store provider, cwd, requested choices, acpx identity,
   request ID, launch intent and timestamps. They are links to upstream execution,
   not another queue, transcript store, process supervisor or source of completion.
-- Generate the acpx request ID before submission through the public shared API.
+- For shared-runtime submissions, generate the acpx request ID before submission.
   Write a unique per-turn launch-intent receipt atomically, then attach the exact
   session handle and persist it before `startTurn`. Record transport acceptance
   when `promptStarted` resolves; it is not queue acceptance or task completion.
@@ -104,6 +110,11 @@ Any picker supports search, bounded pages and cancellation without side effects.
   Missing/malformed receipts produce an
   unknown outcome; never automatically resubmit. Preserve enough identity for
   status inspection. Concurrent continuation of the same session is refused.
+- For Devin's CLI first submission, `requestId` is null until the CLI queue
+  acknowledgement supplies it. Label this `queued`, not transport-accepted.
+  Empty-session native identity is provisional until the first settled result;
+  bind the final identity through public session metadata before continuation.
+  A lost acknowledgement remains unknown even if a task may be running.
 - Claude and Codex use the same integration receipt/preference store.
   Use `RESCUE_DATA_DIR` for isolated tests; the default store is separate from
   legacy rescue state and from host plugin caches.
@@ -137,6 +148,9 @@ one unambiguous unsettled execution; otherwise list candidate IDs.
 The public shared API cannot cancel a request by ID from a new process: after
 these checks it cancels the session's current request. This protects operations
 through this integration, not competing direct acpx calls by the same OS user.
+For a queued Devin first request, local record/scope and current request identity
+are authoritative for cancellation while native identity is provisional. No
+follow-up can enter until that first request settles and identity is bound.
 Confirm settlement where available; never call cancellation requested equivalent
 to cancellation confirmed. A completed task must not cancel a later follow-up.
 Cooperative ACP cancellation does not guarantee every remote side effect stopped.
@@ -147,7 +161,8 @@ Cooperative ACP cancellation does not guarantee every remote side effect stopped
   provider CLI versions separately. An acpx pin does not pin external CLIs.
 - Do not rely on unreleased Ctrl+C cancellation, shared-session model or
   settled-turn cancellation fixes. Use explicit cancel and request correlation.
-- Use the public shared-runtime client for submission/observation. It supplies
+- Use the public shared-runtime client for submission/observation, except the
+  fresh-only Devin CLI queue path described above. The shared runtime supplies
   strict continuation and caller-generated request IDs absent from the CLI.
   Do not import private acpx modules or add a second supervisor.
 - Install the locked runtime into an integration-owned data directory through an

@@ -1,0 +1,12 @@
+{
+  "name": "acpx-delegation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "check": "npm test"
+  },
+  "engines": { "node": ">=22.13.0" },
+  "devDependencies": { "acpx": "0.22.0" }
+}

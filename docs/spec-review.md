@@ -23,3 +23,17 @@ Owner clarification after the first review excludes Qoder as well as Cursor.
 The final supported provider set is Grok, agy and Devin.
 
 Public API basis: [acpx 0.22.0 shared sessions](https://github.com/openclaw/acpx/blob/v0.22.0/docs/shared-sessions.md).
+
+## Devin first-request amendment
+
+A third review in the same Gemini session returned **ready for implementation**,
+with no specification blockers. It covered the public CLI exception for a fresh
+Devin request, provisional native identity, queue acknowledgement and strict
+shared-runtime continuation. The CLI behavior was supplied as implementation
+evidence; Gemini did not independently execute it.
+
+The non-blocking recommendations were to verify model/effort retention when an
+empty native session is replaced, explicitly state the CLI exception in the
+general submission rules, and cover queued acknowledgement and final identity
+binding in the real-acpx fixture suite. The specification now states that
+exception; implementation tests and live evidence track the remaining checks.
