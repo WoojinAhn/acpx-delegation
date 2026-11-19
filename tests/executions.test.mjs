@@ -121,13 +121,22 @@ test('passive observation expires without cancelling, and another process recove
   await writeFile(path, JSON.stringify({ ...receipt, observationDeadline: Date.now() - 1 }));
   const expired = await f.observe(receipt, 60);
   assert.equal(expired.observation, 'expired', JSON.stringify(expired));
+  // acpx journals turn_result after the agent delay and its reply-idle drain.
+  // An expired deadline only inspects briefly, so wait until that result is durable.
+  const deadline = Date.now() + 20_000;
+  let settled;
+  do {
+    const timeoutMs = Math.max(1, Math.min(1_000, deadline - Date.now()));
+    settled = await f.service.observe({ id: receipt.id, cwd: f.cwd, timeoutMs, enforceDeadline: false });
+  } while (settled.observation !== 'terminal' && Date.now() < deadline);
+  assert.equal(settled.observation, 'terminal', JSON.stringify(settled));
+  assert.equal(settled.result?.status, 'completed', JSON.stringify(settled));
   const source = `
     import * as acpx from ${JSON.stringify(runtimeUrl)};
     import { createExecutionService } from ${JSON.stringify(serviceUrl)};
     const service = createExecutionService({dataDir:${JSON.stringify(f.dataDir)},acpx,getProfile(){throw new Error('recovery must not launch');}});
     console.log(JSON.stringify(await service.observe({id:${JSON.stringify(receipt.id)},cwd:${JSON.stringify(f.cwd)},timeoutMs:5000})));
   `;
-  await sleep(1850);
   const output = await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ['--input-type=module', '-e', source], { stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '', stderr = '';
@@ -137,7 +146,7 @@ test('passive observation expires without cancelling, and another process recove
     child.once('close', code => code === 0 ? resolve(stdout) : reject(new Error(stderr)));
   });
   const recovered = JSON.parse(output);
-  assert.equal(recovered.result.status, 'completed');
+  assert.equal(recovered.result?.status, 'completed', JSON.stringify(recovered));
   assert.match(recovered.report, /recover me/);
   assert.equal((await f.calls()).filter(call => call.method === 'session/cancel').length, 0);
   assert.equal((await f.calls()).filter(call => call.method === 'session/prompt').length, 1);
